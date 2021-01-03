@@ -24,6 +24,7 @@ namespace API
         }
 
         public IConfiguration Configuration { get; }
+        readonly string CorsPolicy = "_CorsPolicy";
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -31,7 +32,13 @@ namespace API
             services.AddDbContext<DataContext>(opt => {
                 opt.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
             });
-            
+            services.AddCors(opt => 
+            {
+                opt.AddPolicy(name: CorsPolicy, policy => 
+                {
+                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000");
+                });
+            });
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -51,14 +58,16 @@ namespace API
 
             // app.UseHttpsRedirection();
 
+            app.UseCors(CorsPolicy);
+
             app.UseRouting();
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
+            app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
             });
+
         }
     }
 }
