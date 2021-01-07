@@ -11,10 +11,8 @@ class ActivityScore {
     }
 
     @observable activityRegistry = new Map();
-    @observable activities: IActivity[] = [];
     @observable activity: IActivity | null = null;
     @observable loadingInitial = false;
-    @observable editMode = false;
     @observable submitting = false;
     @observable target = '';
 
@@ -78,7 +76,6 @@ class ActivityScore {
             await agent.Activities.create(activity);
             runInAction(() => {
                 this.activityRegistry.set(activity.id, activity);
-                this.editMode = false;
                 this.submitting = false;
             });
         }
@@ -97,7 +94,6 @@ class ActivityScore {
             runInAction(() => {
                 this.activityRegistry.set(activity.id, activity);
                 this.activity = activity;
-                this.editMode = false;
                 this.submitting = false;
             })
         }
@@ -128,29 +124,6 @@ class ActivityScore {
             console.log(error);
         }
         
-    }
-
-    @action openCreateForm = () => {
-        this.editMode = true;
-        this.activity = null;
-    }
-
-    @action openEditForm = (id: string) => {
-        this.editMode = true;
-        this.activity = this.activityRegistry.get(id);
-    }
-
-    @action cancelformOpen = () => {
-        this.editMode = false;
-    }
-
-    @action selectActivity = (id: string) => {
-        this.activity = this.activityRegistry.get(id);
-        this.editMode = false;
-    }
-
-    @action cancelSelectedActivity = () => {
-        this.activity = null;
     }
 }
 
