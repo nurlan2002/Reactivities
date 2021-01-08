@@ -1,5 +1,6 @@
 import { observable, action, makeAutoObservable, configure, runInAction } from 'mobx';
 import { createContext, SyntheticEvent } from 'react';
+import { history } from '../..';
 import agent from '../api/agent';
 import { IActivity } from '../models/activity';
 
@@ -22,10 +23,10 @@ class ActivityScore {
 
     groupActivitiesByDate(activities: IActivity[]) {
         const sortedActivities = activities.sort(
-            (a,b) => Date.parse(a.date) - Date.parse(b.date)
+            (a,b) => a.date.getTime() - b.date.getTime()
         );
         return Object.entries(sortedActivities.reduce((activities, activity) => {
-            const date = activity.date.split('T')[0];
+            const date = activity.date.toISOString().split('T')[0];
             activities[date] = activities[date] ? [...activities[date], activity] : [activity];
             return activities;
         }, {} as {[key: string]: IActivity[]}));
@@ -37,7 +38,7 @@ class ActivityScore {
             const activities = await agent.Activities.list();
             runInAction(() => {
                 activities.forEach(activity => {
-                    activity.date = activity.date.split('.')[0];
+                    activity.date = new Date(activity.date);
                     this.activityRegistry.set(activity.id, activity);
                 });
                 this.loadingInitial = false;
@@ -57,15 +58,23 @@ class ActivityScore {
         let activity = this.getActivity(id);
         if(activity) {
             this.activity = activity; 
+            return activity;
         }
         else {
             try {
                 activity = await agent.Activities.details(id);
                 runInAction(() => {
+                    activity.date = new Date(activity.date);
                     this.activity = activity;
+                    this.activityRegistry.set(activity.id, activity);
+                    this.loadingInitial =false;
                 })
+                return activity;
             }
             catch (error) {
+                runInAction(() => {
+                    this.loadingInitial =false;
+                })
                 console.log(error);
             }
         }
@@ -87,6 +96,7 @@ class ActivityScore {
                 this.activityRegistry.set(activity.id, activity);
                 this.submitting = false;
             });
+            history.push(`/activities/${activity.id}`);
         }
         catch (error) {
             runInAction(() => {
@@ -104,7 +114,8 @@ class ActivityScore {
                 this.activityRegistry.set(activity.id, activity);
                 this.activity = activity;
                 this.submitting = false;
-            })
+            });
+            history.push(`/activities/${activity.id}`);
         }
         catch (error) {
             runInAction(() => {
