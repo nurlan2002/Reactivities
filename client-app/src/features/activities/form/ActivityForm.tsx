@@ -15,7 +15,7 @@ import { combineDateAndTime } from '../../../app/common/util/util';
 import { combineValidators, composeValidators, hasLengthGreaterThan, isRequired } from 'revalidate'
 
 const validate = combineValidators({
-    title: isRequired({message: 'The event title is required'}),
+    title: isRequired({message: 'The event title is required'}), 
     category: isRequired('Category'),
     description: composeValidators(
         isRequired('Description'),
